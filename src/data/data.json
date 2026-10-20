@@ -1,0 +1,185 @@
+{
+  "editor": {
+    "name": "Mani Venkat",
+    "brand": "Mani FX",
+    "monogram": "MV",
+    "role": "Video Editor & Colorist",
+    "email": "manivenkat580@gmail.com",
+    "phone": "+91 6301 561 744",
+    "instagram": "https://www.instagram.com/mani.fx_in/"
+  },
+  "seo": {
+    "title": "Video Editor & Colorist",
+    "description": "Video editing, color grading, and visual storytelling. Explore selected films and discover a considered approach to every frame."
+  },
+  "hero": {
+    "headline": ["EDITING STORIES.", "CRAFTING FEELING."],
+    "descriptor": "VIDEO EDITING / COLOR GRADING / VISUAL STORYTELLING",
+    "introduction": "The right cut. The right color.\nSomething that stays with you.",
+    "ctaPrimary": "View Selected Work",
+    "ctaSecondary": "About the approach"
+  },
+  "work": {
+    "title": "SELECTED WORK",
+    "introduction": "A selection of visual stories, brand films, and creative experiments."
+  },
+  "about": {
+    "heading": "Every frame,\na reason.",
+    "philosophy": "A considered approach to rhythm, color, and emotion. Finding the moments that matter, and giving the story room to breathe.",
+    "biography": null,
+    "location": null,
+    "tools": [],
+    "image": "/images/featured-film.jpg",
+    "imageAlt": "Cinematic atmosphere and light in visual narrative",
+    "imageCaption": null
+  },
+  "contact": {
+    "heading": "HAVE A STORY\nWORTH TELLING?",
+    "introduction": "Let's create something worth remembering."
+  },
+  "services": [
+    {
+      "id": "video-editing",
+      "title": "Video Editing",
+      "description": "Shaping footage into a story. Thoughtful pacing, purposeful cuts, and a rhythm that holds attention.",
+      "detail": "Story / Structure / Rhythm"
+    },
+    {
+      "id": "color-grading",
+      "title": "Color Grading",
+      "description": "Finding the visual tone of a film. Balanced images, considered contrast, and a cohesive color palette.",
+      "detail": "Balance / Tone / Atmosphere"
+    },
+    {
+      "id": "brand-films",
+      "title": "Brand Films",
+      "description": "Giving an idea a visual language. Focused films that bring a brand's story into view.",
+      "detail": "Identity / Narrative / Connection"
+    },
+    {
+      "id": "social-content",
+      "title": "Social Content",
+      "description": "Making every second count. Platform-conscious edits that keep the story at the center.",
+      "detail": "Short form / Adaptation / Impact"
+    }
+  ],
+  "projects": [
+    {
+      "slug": "selected-work-01",
+      "title": "Film 01",
+      "category": "Vertical Cinema",
+      "year": 2026,
+      "role": "Editor & Colorist",
+      "description": "A vertical cinema edit crafted for narrative rhythm, light, and emotional tone.",
+      "muxPlaybackId": "YxWQuGnBEHal1i1g4KfwoSNuqlfMUsBcbyv4i65h3d4",
+      "portrait": true,
+      "featured": true,
+      "published": true,
+      "order": 1
+    },
+    {
+      "slug": "selected-work-02",
+      "title": "Film 02",
+      "category": "Vertical Cinema",
+      "year": 2026,
+      "role": "Editor & Colorist",
+      "description": "Pacing and atmospheric contrast calibrated for vertical storytelling.",
+      "muxPlaybackId": "E2tL5M8EFy46hpxxXqT00Qo4NQQEGmssMssb4DTXLjuw",
+      "portrait": true,
+      "featured": false,
+      "published": true,
+      "order": 2
+    },
+    {
+      "slug": "selected-work-03",
+      "title": "Film 03",
+      "category": "Vertical Cinema",
+      "year": 2026,
+      "role": "Editor & Colorist",
+      "description": "Dynamic visual cutting focused on momentum, energy, and musical precision.",
+      "muxPlaybackId": "CmosgQqOTPJI00t9Z8Kux2G3J00y00AffDozZNRjv71aKE",
+      "portrait": true,
+      "featured": false,
+      "published": true,
+      "order": 3
+    },
+    {
+      "slug": "selected-work-04",
+      "title": "Film 04",
+      "category": "Vertical Cinema",
+      "year": 2026,
+      "role": "Editor & Colorist",
+      "description": "Expressive color palette and seamless scene transitions designed for maximum immersion.",
+      "muxPlaybackId": "m902El8ZXoZ3QkNByvSDXKC00H64I3UGubUUdCC72XGxw",
+      "portrait": true,
+      "featured": false,
+      "published": true,
+      "order": 4
+    },
+    {
+      "slug": "selected-work-05",
+      "title": "Film 05",
+      "category": "Vertical Cinema",
+      "year": 2026,
+      "role": "Editor & Colorist",
+      "description": "Nuanced pacing and considered framing that highlights emotional resonance.",
+      "muxPlaybackId": "iD2QAFJ5Y4OOCb02Ct6qN6W6drPoa55NEqnRbAeCgd9c",
+      "portrait": true,
+      "featured": false,
+      "published": true,
+      "order": 5
+    },
+    {
+      "slug": "selected-work-06",
+      "title": "Film 06",
+      "category": "Vertical Cinema",
+      "year": 2026,
+      "role": "Editor & Colorist",
+      "description": "Sharp editorial rhythm paired with delicate textural color grading.",
+      "muxPlaybackId": "G00QmYUe8MWY69cvzmD02a9Orcn02XeqmYD02vNEnqZeUZg",
+      "portrait": true,
+      "featured": false,
+      "published": true,
+      "order": 6
+    },
+    {
+      "slug": "selected-work-07",
+      "title": "Film 07",
+      "category": "Vertical Cinema",
+      "year": 2026,
+      "role": "Editor & Colorist",
+      "description": "High-impact visual continuity crafted for the 9:16 vertical canvas.",
+      "muxPlaybackId": "RdoXxiqgb9TSG7442L1tBRmPsJALlNr9WfoTa301ddok",
+      "portrait": true,
+      "featured": false,
+      "published": true,
+      "order": 7
+    },
+    {
+      "slug": "selected-work-08",
+      "title": "Film 08",
+      "category": "Vertical Cinema",
+      "year": 2026,
+      "role": "Editor & Colorist",
+      "description": "Evocative cinematography heightened through intentional tempo and tonal depth.",
+      "muxPlaybackId": "1Y01e8e8Y02aDeIdXq01Fz2LIDkl434rc01Gld1r6h101C3A",
+      "portrait": true,
+      "featured": false,
+      "published": true,
+      "order": 8
+    },
+    {
+      "slug": "selected-work-09",
+      "title": "Film 09",
+      "category": "Vertical Cinema",
+      "year": 2026,
+      "role": "Editor & Colorist",
+      "description": "Refined narrative cuts and deliberate cadence leaving a lasting impression.",
+      "muxPlaybackId": "jhFLo00LWuraSSH01Bu3UAAQkrTeS5Oaoqy9G02aSSTR7g",
+      "portrait": true,
+      "featured": false,
+      "published": true,
+      "order": 9
+    }
+  ]
+}
