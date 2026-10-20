@@ -32,8 +32,15 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 100px; }
+html {
+  max-width: 100%;
+  overflow-x: clip;
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
+}
 body {
+  max-width: 100%;
+  overflow-x: clip;
   margin: 0;
   font-family: var(--font-sf-pro), -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", system-ui, sans-serif;
   font-size: 15px;
@@ -228,6 +235,7 @@ svg { flex-shrink: 0; }
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
+  contain: paint;
 }
 .hero-bg img {
   filter: saturate(.7) contrast(1.05) sepia(.15);
@@ -1203,6 +1211,8 @@ a.contact-button:hover {
 
   /* ── Hero mobile ── */
   .hero {
+    height: max(0px, calc(100vh - var(--site-header-height)));
+    height: max(0px, calc(100svh - var(--site-header-height)));
     overflow: hidden;
   }
   .hero::before {
@@ -1330,6 +1340,16 @@ a.contact-button:hover {
   .project-metadata dd { font-size: 11px; }
   .project-story { grid-template-columns: 1fr; gap: 32px; padding-top: 40px; }
   .project-disclosure { font-size: 10px; }
+}
+
+.portfolio-dock {
+  bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+@media (min-width: 640px) {
+  .portfolio-dock {
+    bottom: max(24px, env(safe-area-inset-bottom));
+  }
 }
 
 @media (max-height: 640px) and (max-width: 640px) {

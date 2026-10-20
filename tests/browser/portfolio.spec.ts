@@ -168,6 +168,25 @@ test("hero fills the viewport below the navbar without internal overflow", async
   }
 });
 
+test("fast carousel swipes settle on an adjacent film without blanking", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const carousel = page.getByRole("region", { name: "Portfolio film carousel" });
+  await carousel.scrollIntoViewIfNeeded();
+  await expect(carousel.locator("canvas")).toBeVisible();
+  const status = carousel.locator('[aria-live="polite"]');
+  const bounds = await carousel.boundingBox();
+  if (!bounds) throw new Error("Carousel has no layout bounds");
+
+  await page.mouse.move(bounds.x + bounds.width * 0.8, bounds.y + bounds.height * 0.5);
+  await page.mouse.down();
+  await page.mouse.move(bounds.x + bounds.width * 0.1, bounds.y + bounds.height * 0.5, { steps: 1 });
+  await page.mouse.up();
+
+  await expect(status).toContainText("Film 02, 2 of 9");
+  await expect(carousel.locator("canvas")).toBeVisible();
+});
+
 test("core text and project navigation remain available without JavaScript", async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();

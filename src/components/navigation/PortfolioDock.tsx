@@ -254,7 +254,7 @@ export function PortfolioDock() {
 
   return (
     <div
-      className="fixed bottom-4 sm:bottom-6 left-0 right-0 z-40 flex justify-center pointer-events-none px-4"
+      className="portfolio-dock fixed left-0 right-0 z-40 flex justify-center pointer-events-none px-4"
       role="navigation"
       aria-label="Portfolio navigation"
     >

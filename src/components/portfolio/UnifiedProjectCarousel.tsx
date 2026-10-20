@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMediaQuery } from "@/lib/useMediaQuery";
@@ -88,7 +88,7 @@ export function UnifiedProjectCarousel({ projects }: UnifiedProjectCarouselProps
   const activeProject = projects[activeIndex] || projects[0];
 
   // Map the 9 unique projects to FlexCarousel items
-  const carouselItems = projects.map((project, index) => ({
+  const carouselItems = useMemo(() => projects.map((project, index) => ({
     src: project.thumbnailUrl ?? muxPoster(project.playbackId),
     alt: project.thumbnailAlt ?? `${project.title} film poster`,
     title: project.title,
@@ -96,7 +96,7 @@ export function UnifiedProjectCarousel({ projects }: UnifiedProjectCarouselProps
     slug: project.slug,
     project,
     index,
-  }));
+  })), [projects]);
 
   const handleIndexChange = useCallback((newIndex: number) => {
     setActiveIndex(newIndex);
@@ -135,6 +135,8 @@ export function UnifiedProjectCarousel({ projects }: UnifiedProjectCarouselProps
     carouselEngineRef.current?.goTo?.(index);
     setActiveIndex(index);
   };
+
+  if (!activeProject) return null;
 
   return (
     <div className="unified-project-showcase w-full space-y-12">
@@ -245,9 +247,9 @@ export function UnifiedProjectCarousel({ projects }: UnifiedProjectCarouselProps
                 {String(activeIndex + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}
               </span>
               <div className="flex items-center gap-1">
-                {projects.map((_, idx) => (
+                {projects.map((project, idx) => (
                   <span
-                    key={idx}
+                    key={project.slug}
                     className={`h-1 rounded-full transition-all duration-300 ${
                       activeIndex === idx ? "w-4 bg-[#c6ae83]" : "w-1 bg-white/20"
                     }`}

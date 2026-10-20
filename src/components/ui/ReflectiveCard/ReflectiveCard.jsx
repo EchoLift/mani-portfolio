@@ -413,6 +413,7 @@ const createRenderer = canvas => {
     for (const item of [captureProgram, blurProgram, plateProgram]) {
       if (item) gl.deleteProgram(item.program);
     }
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
     return null;
   }
 
@@ -568,6 +569,9 @@ const createRenderer = canvas => {
     gl.deleteBuffer(buffer);
     gl.deleteVertexArray(vao);
     for (const item of [captureProgram, blurProgram, plateProgram]) gl.deleteProgram(item.program);
+    // Deleting GPU objects does not release the browser's context slot. Project
+    // changes remount this card; waiting for GC can evict the carousel's context.
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
   };
 
   return { upload, renderEnv, renderPlate, dispose };
@@ -607,7 +611,7 @@ const ReflectiveCard = ({
 }) => {
   const rootRef = useRef(null);
   const bodyRef = useRef(null);
-  const canvasRef = useRef(null);
+  const canvasHostRef = useRef(null);
   const videoRef = useRef(null);
   const camRef = useRef(null);
   const wakeRef = useRef(null);
@@ -651,11 +655,17 @@ const ReflectiveCard = ({
   useEffect(() => {
     const root = rootRef.current;
     const body = bodyRef.current;
-    const canvas = canvasRef.current;
+    const canvasHost = canvasHostRef.current;
     const videoElement = videoRef.current;
     const camElement = camRef.current;
-    if (!root || !body || !canvas || !videoElement || !camElement) return;
+    if (!root || !body || !canvasHost || !videoElement || !camElement) return;
 
+    // Each effect owns its canvas as well as its context. Strict Mode and
+    // context restoration can restart the effect on the same React host node;
+    // neither should reuse a context that cleanup has explicitly released.
+    const canvas = document.createElement('canvas');
+    canvas.className = 'block h-full w-full';
+    canvasHost.appendChild(canvas);
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const renderer = createRenderer(canvas);
     const x = { p: 0, v: 0, target: 0 };
@@ -954,6 +964,7 @@ const ReflectiveCard = ({
         for (const type of mediaEvents) element.removeEventListener(type, onMedia);
       }
       renderer?.dispose();
+      canvas.remove();
     };
   }, [generation]);
 
@@ -1027,7 +1038,7 @@ const ReflectiveCard = ({
       style={{ ...cardStyle, ...style }}
     >
       <div ref={bodyRef} className="relative box-border h-full w-full overflow-hidden" style={BODY_STYLE}>
-        <canvas ref={canvasRef} className="absolute inset-0 block h-full w-full" aria-hidden="true" />
+        <div ref={canvasHostRef} className="absolute inset-0 h-full w-full" aria-hidden="true" />
         <div className="relative z-[1] box-border flex h-full flex-col p-[var(--rc-pad)]">
           {children ?? (
             <>

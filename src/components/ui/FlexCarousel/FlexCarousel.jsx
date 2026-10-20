@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Renderer, Program, Mesh, Triangle, Plane, Texture, RenderTarget } from 'ogl';
+import { VideoPoster } from '../../media/VideoPoster';
+import { fallbackPoster } from '../../../lib/media';
 
 const photo = id => `https://images.unsplash.com/${id}?w=1200&q=80&auto=format&fit=max`;
 
@@ -300,7 +302,10 @@ const FlexCarousel = ({
   const itemsRef = useRef(items);
   const engineRef = useRef(null);
   const callbacksRef = useRef({ onChange, onSelect });
+  const selectionRef = useRef(null);
   const [active, setActive] = useState(0);
+  const [generation, setGeneration] = useState(0);
+  const [canvasReady, setCanvasReady] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [focusOpen, setFocusOpen] = useState(false);
 
@@ -308,7 +313,7 @@ const FlexCarousel = ({
   const pick = (value, key) => (value === undefined || value === null ? base[key] : value);
 
   const list = items && items.length ? items : DEFAULT_ITEMS;
-  const itemsKey = list.map(item => item.src).join('|');
+  const itemsKey = JSON.stringify(list.map(item => [item.slug ?? item.src, item.src]));
 
   useEffect(() => {
     itemsRef.current = list;
@@ -346,13 +351,19 @@ const FlexCarousel = ({
     const container = containerRef.current;
     if (!container) return undefined;
 
-    const renderer = new Renderer({
-      dpr: Math.min(window.devicePixelRatio || 1, 2),
-      alpha: true,
-      premultipliedAlpha: true,
-      antialias: false,
-      depth: false
-    });
+    let renderer;
+    try {
+      renderer = new Renderer({
+        dpr: Math.min(window.devicePixelRatio || 1, 2),
+        alpha: true,
+        premultipliedAlpha: true,
+        antialias: false,
+        depth: false,
+        preserveDrawingBuffer: true
+      });
+    } catch {
+      return undefined;
+    }
     const gl = renderer.gl;
     if (!renderer.isWebgl2) {
       gl.getExtension('WEBGL_lose_context')?.loseContext();
@@ -363,6 +374,8 @@ const FlexCarousel = ({
     canvas.style.display = 'block';
     canvas.style.width = '100%';
     canvas.style.height = '100%';
+    canvas.style.transform = 'translateZ(0)';
+    canvas.style.backfaceVisibility = 'hidden';
     canvas.setAttribute('aria-hidden', 'true');
     container.prepend(canvas);
 
@@ -439,6 +452,8 @@ const FlexCarousel = ({
     let last = performance.now();
     let visible = true;
     let alive = true;
+    let lost = false;
+    let presented = false;
     let dirty = true;
     let activeIndex = -1;
     let interactedAt = -Infinity;
@@ -470,8 +485,26 @@ const FlexCarousel = ({
     const focus = { index: -1, pending: -1, t: 0, v: 0, target: 0 };
     let instances = [];
 
+    // A lightweight local texture keeps pending/failed requests from becoming
+    // empty panels, even if the network (including the fallback image) fails.
+    const placeholder = document.createElement('canvas');
+    placeholder.width = 180;
+    placeholder.height = 320;
+    const placeholderContext = placeholder.getContext('2d');
+    if (placeholderContext) {
+      placeholderContext.fillStyle = '#161614';
+      placeholderContext.fillRect(0, 0, 180, 320);
+      placeholderContext.strokeStyle = '#c6ae83';
+      placeholderContext.strokeRect(12, 12, 156, 296);
+      placeholderContext.fillStyle = '#c6ae83';
+      placeholderContext.font = '12px sans-serif';
+      placeholderContext.textAlign = 'center';
+      placeholderContext.fillText('Film preview', 90, 160);
+    }
+
     const loadSlot = (item, index) => {
       const texture = new Texture(gl, {
+        image: placeholder,
         generateMipmaps: true,
         minFilter: gl.LINEAR_MIPMAP_LINEAR,
         magFilter: gl.LINEAR,
@@ -484,16 +517,16 @@ const FlexCarousel = ({
         aspect: 0.8,
         loaded: false,
         failed: false,
-        ready: 0,
+        ready: 1,
         color: [0.5, 0.5, 0.5],
-        image: [1, 1],
+        image: [180, 320],
         dispose: () => {}
       };
       const image = new Image();
       image.crossOrigin = 'anonymous';
       image.decoding = 'async';
       image.onload = () => {
-        if (!alive || !slots.includes(slot)) return;
+        if (!alive || lost || !slots.includes(slot)) return;
         texture.image = image;
         texture.update();
         slot.image = [image.naturalWidth || 1, image.naturalHeight || 1];
@@ -518,12 +551,14 @@ const FlexCarousel = ({
           slot.color = [0.5, 0.5, 0.5];
         }
         slot.loaded = true;
+        slot.ready = 0;
         dirty = true;
         start();
       };
       image.onerror = () => {
-        if (!alive) return;
+        if (!alive || lost || !slots.includes(slot)) return;
         slot.failed = true;
+        if (image.getAttribute('src') !== fallbackPoster) image.src = fallbackPoster;
         dirty = true;
         start();
       };
@@ -539,6 +574,8 @@ const FlexCarousel = ({
     const setItems = next => {
       slots.forEach(slot => slot.dispose());
       slots = next.map(loadSlot);
+      const selected = Math.max(0, next.findIndex(item => (item.slug ?? item.src) === selectionRef.current));
+      goal = metrics(settingsRef.current).centers[selected] ?? 0;
       activeIndex = -1;
       layout = null;
       resnap = true;
@@ -687,7 +724,7 @@ const FlexCarousel = ({
     };
 
     const beginIntro = (s, m) => {
-      const kind = reducedMotion && s.intro !== 'none' ? 'fade' : s.intro;
+      const kind = generation > 0 ? 'none' : reducedMotion && s.intro !== 'none' ? 'fade' : s.intro;
       introState.kind = INTRO_DURATION[kind] ? kind : 'none';
       introState.running = introState.kind !== 'none';
       introState.done = !introState.running;
@@ -702,6 +739,7 @@ const FlexCarousel = ({
     };
 
     const resize = () => {
+      if (lost) return;
       width = Math.max(1, container.clientWidth);
       height = Math.max(1, container.clientHeight);
       renderer.dpr = Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(PIXEL_BUDGET / (width * height)));
@@ -793,6 +831,7 @@ const FlexCarousel = ({
       const current = nearest(m, pos);
       if (current !== activeIndex) {
         activeIndex = current;
+        selectionRef.current = slots[current].item.slug ?? slots[current].item.src;
         setActive(current);
         callbacksRef.current.onChange?.(current, itemsRef.current[current]);
       }
@@ -891,7 +930,7 @@ const FlexCarousel = ({
       }
 
       const waiting = !introState.done;
-      if (dirty || animating || pointer.dragging) {
+      if (!lost && (dirty || animating || pointer.dragging)) {
         dirty = false;
         instances = [];
         const dpr = renderer.dpr;
@@ -973,6 +1012,10 @@ const FlexCarousel = ({
         lensUniforms.uStrength.value = effects.strength * (1 - focusEase);
         lensUniforms.uSceneAlpha.value = effects.sceneAlpha;
         renderer.render({ scene: lensMesh });
+        if (!presented && effects.sceneAlpha > 0) {
+          presented = true;
+          setCanvasReady(true);
+        }
       }
 
       let nextHover = '';
@@ -1084,7 +1127,12 @@ const FlexCarousel = ({
           velocity = -((lastSample.x - first.x) / (lastSample.t - first.t)) * 1000;
         }
         vel = velocity;
-        const landing = snapPoint(m, pos + velocity * 0.32);
+        const origin = snapPoint(m, pointer.startPos);
+        const originIndex = nearest(m, origin);
+        const nextIndex = (originIndex + (velocity >= 0 ? 1 : m.centers.length - 1)) % m.centers.length;
+        const maxStep = m.widths[originIndex] / 2 + m.gap + m.widths[nextIndex] / 2;
+        const projected = pos + Math.max(-maxStep, Math.min(maxStep, velocity * 0.32));
+        const landing = snapPoint(m, Math.max(origin - maxStep, Math.min(origin + maxStep, projected)));
         goal = landing;
         if (Math.abs(velocity) > 400 && Math.abs(landing - pos) < 1) step(m, velocity > 0 ? 1 : -1);
         mode = 'spring';
@@ -1188,8 +1236,24 @@ const FlexCarousel = ({
       hasFocus = false;
     };
     const onVisibility = () => {
-      if (!document.hidden) start();
+      if (!document.hidden) {
+        dirty = true;
+        start();
+      }
     };
+    const onContextLost = event => {
+      event.preventDefault();
+      lost = true;
+      canvas.style.visibility = 'hidden';
+      setCanvasReady(false);
+      // Keep index/gesture handling alive while the DOM poster is displayed.
+      start();
+    };
+    const onContextRestored = () => {
+      if (alive) setGeneration(value => value + 1);
+    };
+    canvas.addEventListener('webglcontextlost', onContextLost);
+    canvas.addEventListener('webglcontextrestored', onContextRestored);
 
     container.addEventListener('pointerdown', onPointerDown);
     container.addEventListener('pointermove', onPointerMove);
@@ -1206,6 +1270,7 @@ const FlexCarousel = ({
     resizeObserver.observe(container);
     const intersectionObserver = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
+      dirty = true;
       start();
     });
     intersectionObserver.observe(container);
@@ -1233,6 +1298,7 @@ const FlexCarousel = ({
       alive = false;
       visible = false;
       engineRef.current = null;
+      if (carouselRef) carouselRef.current = null;
       cancelAnimationFrame(raf);
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
@@ -1246,12 +1312,14 @@ const FlexCarousel = ({
       container.removeEventListener('focus', onFocus);
       container.removeEventListener('blur', onBlur);
       document.removeEventListener('visibilitychange', onVisibility);
+      canvas.removeEventListener('webglcontextlost', onContextLost);
+      canvas.removeEventListener('webglcontextrestored', onContextRestored);
       slots.forEach(slot => slot.dispose());
       slots = [];
       gl.getExtension('WEBGL_lose_context')?.loseContext();
       if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
     };
-  }, []);
+  }, [generation, carouselRef]);
 
   useEffect(() => {
     if (carouselRef) {
@@ -1273,6 +1341,15 @@ const FlexCarousel = ({
       tabIndex={0}
     >
       <style>{STYLE}</style>
+      {!canvasReady && current && (
+        <div
+          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden"
+          data-carousel-fallback=""
+          style={{ height: `${cardHeight * 100}%`, aspectRatio: FIT_ASPECT[fit] ?? 0.8, borderRadius: radius }}
+        >
+          <VideoPoster src={current.src} alt={current.alt || current.title || 'Film preview'} />
+        </div>
+      )}
       {renderCard ? (
         renderCard(current, active)
       ) : captions && current && revealed && (
@@ -1281,7 +1358,7 @@ const FlexCarousel = ({
           aria-hidden="true"
         >
           <span
-            key={active}
+            key={current.slug ?? current.src}
             className="flex max-w-full flex-col items-center text-[15px] font-medium leading-[1.35] animate-[flex-carousel-title_520ms_cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none"
           >
             {current.title || current.alt}
