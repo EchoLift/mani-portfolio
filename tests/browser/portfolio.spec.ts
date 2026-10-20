@@ -64,6 +64,28 @@ test("player initializes on intent and exposes a retry state on failure", async 
   await expect(page.locator("mux-player")).toHaveCount(1);
 });
 
+test("carousel Watch Film opens autoplay with native controls and no second play button", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const watchButton = page.getByRole("button", { name: "Watch Film", exact: true });
+  await watchButton.scrollIntoViewIfNeeded();
+  await watchButton.click();
+
+  const dialog = page.getByRole("dialog");
+  const player = dialog.locator("mux-player");
+  await expect(dialog).toBeVisible();
+  await expect(player).toHaveCount(1);
+  await expect(dialog.locator(".video-start")).toHaveCount(0);
+  await expect(dialog.locator(".dialog-note")).toContainText("Playing with sound");
+  await expect(player.locator("media-play-button").first()).toBeAttached();
+  const playbackState = await player.evaluate((element) => {
+    const media = element as HTMLMediaElement;
+    return { autoplay: media.autoplay, muted: media.muted };
+  });
+  expect(playbackState).toEqual({ autoplay: true, muted: false });
+  await expect.poll(() => player.evaluate((element) => (element as HTMLMediaElement).paused)).toBe(false);
+});
+
 test("mobile disclosure works with keyboard and section links", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");

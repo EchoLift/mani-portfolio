@@ -16,12 +16,14 @@ export function MuxVideo({
   title,
   poster,
   portrait = false,
+  autoStart = false,
 }: {
   playbackId?: string;
   title: string;
   poster?: string;
   /** Pass true for 9:16 portrait videos. The shell will use aspect-ratio: 9 / 16. */
   portrait?: boolean;
+  autoStart?: boolean;
 }) {
   const [started, setStarted] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -40,7 +42,7 @@ export function MuxVideo({
 
   return (
     <div className={shellClass} style={{ aspectRatio }} aria-label={`${title} video`}>
-      {!started ? (
+      {!started && !autoStart ? (
         <button
           className="video-start"
           onClick={() => setStarted(true)}
@@ -77,6 +79,8 @@ export function MuxVideo({
           poster={image}
           streamType="on-demand"
           preload="metadata"
+          autoPlay={autoStart}
+          muted={false}
           playsInline
           accentColor="#C6AE83"
           primaryColor="#F3F0E9"

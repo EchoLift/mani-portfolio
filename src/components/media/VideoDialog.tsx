@@ -17,6 +17,7 @@ export function VideoDialog({
   isOpen,
   onOpenChange,
   showTrigger = true,
+  autoStart = false,
 }: {
   playbackId: string;
   title: string;
@@ -27,6 +28,7 @@ export function VideoDialog({
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   showTrigger?: boolean;
+  autoStart?: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -121,9 +123,14 @@ export function VideoDialog({
               title={title}
               poster={poster}
               portrait={portrait}
+              autoStart={autoStart}
             />
           )}
-          <p className="dialog-note">Press play to begin. Sound is never played automatically.</p>
+          <p className="dialog-note">
+            {autoStart
+              ? "Playing with sound. Use the player controls for volume and playback."
+              : "Press play to begin. Sound is never played automatically."}
+          </p>
         </div>
       </dialog>
     </>

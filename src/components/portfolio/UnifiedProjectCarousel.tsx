@@ -82,6 +82,7 @@ interface UnifiedProjectCarouselProps {
 export function UnifiedProjectCarousel({ projects }: UnifiedProjectCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedVideoProject, setSelectedVideoProject] = useState<Project | null>(null);
+  const [autoStartVideo, setAutoStartVideo] = useState(false);
   const isMobile = useMediaQuery("(max-width: 640px)", false);
   const carouselEngineRef = useRef<FlexCarouselEngine | null>(null);
 
@@ -107,6 +108,7 @@ export function UnifiedProjectCarousel({ projects }: UnifiedProjectCarouselProps
       setActiveIndex(selectedIndex);
       const targetProject = projects[selectedIndex] || item?.project;
       if (targetProject && validPlaybackId(targetProject.playbackId)) {
+        setAutoStartVideo(true);
         setSelectedVideoProject(targetProject);
       }
     },
@@ -117,6 +119,7 @@ export function UnifiedProjectCarousel({ projects }: UnifiedProjectCarouselProps
     (proj?: Project) => {
       const target = proj || activeProject;
       if (target && validPlaybackId(target.playbackId)) {
+        setAutoStartVideo(true);
         setSelectedVideoProject(target);
       }
     },
@@ -321,7 +324,7 @@ export function UnifiedProjectCarousel({ projects }: UnifiedProjectCarouselProps
       </div>
 
       {/* Active Film Reflective Master Presentation */}
-      <div className="active-film-spotlight border border-white/10 rounded-2xl bg-[#121212]/60 p-6 sm:p-10 lg:p-12">
+      <div className="hidden active-film-spotlight border border-white/10 rounded-2xl bg-[#121212]/60 p-6 sm:p-10 lg:p-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           {/* Left Column: Rich Editorial Metadata and Stream Trigger */}
           <div className="lg:col-span-7 space-y-6">
@@ -412,9 +415,13 @@ export function UnifiedProjectCarousel({ projects }: UnifiedProjectCarouselProps
         <VideoDialog
           isOpen={true}
           onOpenChange={(open) => {
-            if (!open) setSelectedVideoProject(null);
+            if (!open) {
+              setAutoStartVideo(false);
+              setSelectedVideoProject(null);
+            }
           }}
           showTrigger={false}
+          autoStart={autoStartVideo}
           playbackId={selectedVideoProject.playbackId}
           title={selectedVideoProject.title}
           poster={selectedVideoProject.thumbnailUrl}
